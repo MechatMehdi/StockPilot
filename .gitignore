@@ -36,3 +36,20 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Logs ###
+*.log
+build_log.txt
+error_log*.txt
+test_log.txt
+
+### Database ###
+*.db
+
+### Maven ###
+dependency-reduced-pom.xml
+
+### User Data ###
+data/receipts/
+data/images/
+data/settings.properties
