@@ -105,12 +105,30 @@ jobs:
             exit $LASTEXITCODE
           }
       
+      - name: Find MSI files
+        id: msi
+        run: |
+          $projectDir = "${{ steps.find_root.outputs.projectDir }}"
+          $targetDir = Join-Path $projectDir "target"
+          
+          # Search recursively for any MSI files
+          $msiFiles = @(Get-ChildItem -Path $targetDir -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue)
+          
+          if ($msiFiles.Count -eq 0) {
+            Write-Host "No MSI files found in $targetDir"
+            Write-Host "Directory structure:"
+            Get-ChildItem -Path $targetDir -Recurse | Select-Object FullName
+            echo "msiPath=" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "Found $($msiFiles.Count) MSI file(s):"
+            $msiFiles | ForEach-Object { Write-Host "  - $($_.FullName)" }
+            echo "msiPath=$($msiFiles[0].FullName)" >> $env:GITHUB_OUTPUT
+          }
+      
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            target/dist/*.msi
-            gl_project/target/dist/*.msi
+          files: ${{ steps.msi.outputs.msiPath }}
           draft: false
           prerelease: false
         env:
