@@ -110,26 +110,43 @@ jobs:
         run: |
           $projectDir = "${{ steps.find_root.outputs.projectDir }}"
           $targetDir = Join-Path $projectDir "target"
-          
+
           # Search recursively for any MSI files
           $msiFiles = @(Get-ChildItem -Path $targetDir -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue)
-          
+
           if ($msiFiles.Count -eq 0) {
             Write-Host "No MSI files found in $targetDir"
             Write-Host "Directory structure:"
             Get-ChildItem -Path $targetDir -Recurse | Select-Object FullName
             echo "msiPath=" >> $env:GITHUB_OUTPUT
+            echo "msiName=" >> $env:GITHUB_OUTPUT
           } else {
             Write-Host "Found $($msiFiles.Count) MSI file(s):"
             $msiFiles | ForEach-Object { Write-Host "  - $($_.FullName)" }
-            echo "msiPath=$($msiFiles[0].FullName)" >> $env:GITHUB_OUTPUT
+            $first = $msiFiles[0]
+            echo "msiPath=$($first.FullName)" >> $env:GITHUB_OUTPUT
+            echo "msiName=$($first.Name)" >> $env:GITHUB_OUTPUT
           }
-      
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
         with:
-          files: ${{ steps.msi.outputs.msiPath }}
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
+          body: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Asset
+        id: upload_asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.msi.outputs.msiPath }}
+          asset_name: ${{ steps.msi.outputs.msiName }}
+          asset_content_type: application/x-msi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
