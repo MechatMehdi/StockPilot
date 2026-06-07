@@ -8,16 +8,16 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Java 23
         uses: actions/setup-java@v4
         with:
           java-version: '23'
-          distribution: 'oracle'
-      
+          distribution: 'temurin'
+
       - name: Find project root
         id: find_root
         run: |
@@ -28,57 +28,55 @@ jobs:
             Write-Host "Project found in repository root"
             echo "projectDir=." >> $env:GITHUB_OUTPUT
           }
-      
+
       - name: Build with Maven
         run: |
           $projectDir = "${{ steps.find_root.outputs.projectDir }}"
           Write-Host "Building from: $projectDir"
-          
+
           if ($projectDir -ne ".") {
             Push-Location $projectDir
           }
-          
-          .\mvnw.cmd clean package -DskipTests -X
+
+          .\mvnw.cmd clean package -DskipTests
           $buildStatus = $LASTEXITCODE
-          
+
           if ($projectDir -ne ".") {
             Pop-Location
           }
-          
+
           if ($buildStatus -ne 0) {
             Write-Error "Maven build failed with exit code $buildStatus"
             exit $buildStatus
           }
-      
+
       - name: Find and Package JAR
         run: |
           $projectDir = "${{ steps.find_root.outputs.projectDir }}"
           $targetDir = Join-Path $projectDir "target"
-          
-          Write-Host "Target directory: $targetDir"
-          Write-Host "Directory exists: $(Test-Path $targetDir)"
-          
-          if (Test-Path $targetDir) {
-            Write-Host "Files in target:"
-            Get-ChildItem $targetDir -File | ForEach-Object { Write-Host "  - $($_.Name)" }
-          }
-          
-          $jarFile = Get-ChildItem "$targetDir\*.jar" -ErrorAction SilentlyContinue | 
-                     Where-Object { $_.Name -notlike "*original*" } | 
+
+          Write-Host "Files in target:"
+          Get-ChildItem $targetDir -File | ForEach-Object { Write-Host "  - $($_.Name)" }
+
+          # Find the shaded JAR (exclude original)
+          $jarFile = Get-ChildItem "$targetDir\*.jar" -ErrorAction SilentlyContinue |
+                     Where-Object { $_.Name -notlike "*original*" } |
                      Select-Object -First 1
-          
+
           if (-not $jarFile) {
             Write-Error "No JAR file found in $targetDir"
             exit 1
           }
-          
+
           Write-Host "Found JAR: $($jarFile.Name)"
-          
+
+          # Create dist directory
           $distDir = Join-Path $targetDir "dist"
-          if (-not (Test-Path $distDir)) { 
+          if (-not (Test-Path $distDir)) {
             New-Item -ItemType Directory -Path $distDir -Force | Out-Null
           }
-          
+
+          # jpackage — bundle JRE + JAR into MSI
           Write-Host "Creating MSI installer..."
           jpackage `
             --input "$targetDir" `
@@ -89,10 +87,12 @@ jobs:
             --dest "$distDir" `
             --app-version 1.0 `
             --vendor "StockPilot" `
+            --java-options "--add-opens javafx.graphics/com.sun.javafx.sg.prism=ALL-UNNAMED" `
+            --java-options "-Dfile.encoding=UTF-8" `
             --win-dir-chooser `
             --win-menu `
             --win-shortcut
-          
+
           if ($LASTEXITCODE -eq 0) {
             Write-Host "MSI created successfully"
             Get-ChildItem "$distDir\*.msi" | ForEach-Object { Write-Host "  - $($_.Name)" }
@@ -100,7 +100,7 @@ jobs:
             Write-Error "jpackage failed with exit code $LASTEXITCODE"
             exit $LASTEXITCODE
           }
-      
+
       - name: Find MSI files
         id: msi
         run: |
@@ -110,18 +110,15 @@ jobs:
           $msiFiles = @(Get-ChildItem -Path $targetDir -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue)
 
           if ($msiFiles.Count -eq 0) {
-            Write-Host "No MSI files found in $targetDir"
-            Write-Host "Directory structure:"
+            Write-Error "No MSI files found"
             Get-ChildItem -Path $targetDir -Recurse | Select-Object FullName
-            echo "msiPath=" >> $env:GITHUB_OUTPUT
-            echo "msiName=" >> $env:GITHUB_OUTPUT
-          } else {
-            Write-Host "Found $($msiFiles.Count) MSI file(s):"
-            $msiFiles | ForEach-Object { Write-Host "  - $($_.FullName)" }
-            $first = $msiFiles[0]
-            echo "msiPath=$($first.FullName)" >> $env:GITHUB_OUTPUT
-            echo "msiName=$($first.Name)" >> $env:GITHUB_OUTPUT
+            exit 1
           }
+
+          $first = $msiFiles[0]
+          Write-Host "MSI: $($first.FullName)"
+          echo "msiPath=$($first.FullName)" >> $env:GITHUB_OUTPUT
+          echo "msiName=$($first.Name)" >> $env:GITHUB_OUTPUT
 
       - name: Create GitHub Release
         id: create_release
@@ -136,7 +133,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Release Asset
-        id: upload_asset
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
