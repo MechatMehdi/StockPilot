@@ -7,7 +7,7 @@
 
     <groupId>application</groupId>
     <artifactId>StockPilot</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <name>StockPilot</name>
 
     <properties>
@@ -149,6 +149,50 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- jpackage for creating native installer -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jlink-plugin</artifactId>
+                <version>3.1.2</version>
+                <executions>
+                    <execution>
+                        <id>create-jlink-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jlink</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <moduleName>application.main</moduleName>
+                    <outputDirectoryImage>target/image</outputDirectoryImage>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.panteleyev</groupId>
+                <artifactId>jpackage-maven-plugin</artifactId>
+                <version>1.6.5</version>
+                <configuration>
+                    <input>target</input>
+                    <dest>target/dist</dest>
+                    <appname>StockPilot</appname>
+                    <appversion>1.0</appversion>
+                    <vendor>StockPilot Team</vendor>
+                    <mainclass>application.main.AppLauncher</mainclass>
+                    <mainjar>StockPilot-1.0-SNAPSHOT-shaded.jar</mainjar>
+                    <module>java.base</module>
+                    <runtimeimage>target/image</runtimeimage>
+                    <type>msi</type>
+                    <winConsole>false</winConsole>
+                    <winDirChooser>true</winDirChooser>
+                    <winMenu>true</winMenu>
+                    <winMenuGroup>StockPilot</winMenuGroup>
+                    <winShortcut>true</winShortcut>
+                    <winUpgradeUuid>12345678-1234-1234-1234-123456789012</winUpgradeUuid>
+                </configuration>
             </plugin>
 
         </plugins>

@@ -1,0 +1,33 @@
+name: Build & Release StockPilot
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Java 23
+        uses: actions/setup-java@v4
+        with:
+          java-version: '23'
+          distribution: 'oracle'
+      
+      - name: Build with Maven
+        run: |
+          cd gl_project
+          .\mvnw.cmd clean package -DskipTests
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: gl_project/target/dist/*.msi
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
