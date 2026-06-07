@@ -20,13 +20,15 @@ jobs:
       
       - name: Build with Maven
         run: |
-          cd gl_project
+          if (Test-Path "gl_project\pom.xml") { cd gl_project }
           .\mvnw.cmd clean package -DskipTests
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: gl_project/target/dist/*.msi
+          files: |
+            target/dist/*.msi
+            gl_project/target/dist/*.msi
           draft: false
           prerelease: false
         env:
