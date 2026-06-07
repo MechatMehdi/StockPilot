@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="18" styleClass="view-container" fillWidth="true"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="application.controller.ActivityLogController">
+
+    <!-- ── Page Header ─────────────────────────────────────────── -->
+    <HBox alignment="CENTER_LEFT" spacing="16" styleClass="page-header">
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Activity Log" styleClass="page-title" />
+            <Label text="Complete audit trail of all inventory actions"
+                   style="-fx-text-fill:#7B90A8;-fx-font-size:13px;" />
+        </VBox>
+        <Button text="📄  Export CSV" onAction="#exportCsv" styleClass="secondary-btn"
+                style="-fx-padding: 8px 16px;" />
+    </HBox>
+
+    <!-- ── Log Table ───────────────────────────────────────────── -->
+    <TableView fx:id="logTable" VBox.vgrow="ALWAYS" maxHeight="Infinity">
+        <columns>
+            <TableColumn fx:id="dateColumn" text="Date &amp; Time" prefWidth="180" minWidth="140" />
+            <TableColumn fx:id="userColumn" text="User"            prefWidth="130" minWidth="90"  />
+            <TableColumn fx:id="typeColumn" text="Action Type"     prefWidth="130" minWidth="90"  />
+            <TableColumn fx:id="qtyColumn"  text="Qty Change"      prefWidth="110" minWidth="80"  />
+            <TableColumn fx:id="noteColumn" text="Notes"           prefWidth="400" minWidth="200" />
+        </columns>
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+        </columnResizePolicy>
+    </TableView>
+
+</VBox>

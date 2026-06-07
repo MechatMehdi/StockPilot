@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<VBox spacing="20" styleClass="view-container" fillWidth="true"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="application.controller.ProductFormController">
+
+    <!-- ── Page Header ─────────────────────────────────────────── -->
+    <HBox alignment="CENTER_LEFT" spacing="16" styleClass="page-header">
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Add / Edit Product" styleClass="page-title" />
+            <Label text="Scan a known product to restock it instantly, or fill in the form to add a new one."
+                   style="-fx-text-fill:#7B90A8;-fx-font-size:13px;" />
+        </VBox>
+        <Label text="Qty / scan:" style="-fx-text-fill:#94A3B8;-fx-font-size:13px;" />
+        <Spinner fx:id="intakeQtySpinner" prefWidth="80" editable="true" />
+        <Button text="📱  Pair Scanner" onAction="#showQR" styleClass="secondary-btn" />
+    </HBox>
+
+    <!-- ── Scan Feedback Banner ──────────────────────────────────── -->
+    <Label fx:id="scanFeedbackBar"
+           text="📷  Waiting for barcode scan from phone…"
+           maxWidth="Infinity" wrapText="true"
+           style="-fx-background-color:rgba(30,45,61,0.85);
+                  -fx-background-radius:10;
+                  -fx-border-color:#334155;
+                  -fx-border-radius:10;
+                  -fx-border-width:1;
+                  -fx-text-fill:#94A3B8;
+                  -fx-font-size:14px;
+                  -fx-padding:12px 18px;" />
+
+    <!-- ── Form + Image side-by-side ───────────────────────────── -->
+    <HBox spacing="20" VBox.vgrow="ALWAYS" fillHeight="true">
+
+        <!-- Left: form fields -->
+        <ScrollPane fitToWidth="true" HBox.hgrow="ALWAYS" styleClass="transparent-scroll-pane"
+                    style="-fx-background: transparent; -fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-border-color: transparent; -fx-padding: 0;">
+            <VBox spacing="18">
+
+                <!-- Section: Identification -->
+                <Label text="IDENTIFICATION" styleClass="form-section-title" />
+                <GridPane hgap="16" vgap="14">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="130" prefWidth="150" />
+                        <ColumnConstraints minWidth="180" hgrow="ALWAYS" />
+                        <ColumnConstraints minWidth="130" prefWidth="150" />
+                        <ColumnConstraints minWidth="180" hgrow="ALWAYS" />
+                    </columnConstraints>
+                    <Label text="Product Name *" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <TextField fx:id="nameField" promptText="e.g. Shampoo 500ml"
+                               GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity" />
+                    <Label text="SKU *" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                    <TextField fx:id="skuField" promptText="e.g. SKU-001"
+                               GridPane.columnIndex="3" GridPane.rowIndex="0" maxWidth="Infinity" />
+                </GridPane>
+
+                <!-- Section: Classification -->
+                <Label text="CLASSIFICATION" styleClass="form-section-title" />
+                <GridPane hgap="16" vgap="14">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="130" prefWidth="150" />
+                        <ColumnConstraints minWidth="180" hgrow="ALWAYS" />
+                        <ColumnConstraints minWidth="130" prefWidth="150" />
+                        <ColumnConstraints minWidth="180" hgrow="ALWAYS" />
+                    </columnConstraints>
+                    <Label text="Category *" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <TextField fx:id="categoryField" promptText="e.g. Hair Care"
+                               GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity" />
+                    <Label text="Supplier" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                    <TextField fx:id="supplierField" promptText="e.g. L'Oréal"
+                               GridPane.columnIndex="3" GridPane.rowIndex="0" maxWidth="Infinity" />
+                </GridPane>
+
+                <!-- Section: Pricing -->
+                <Label text="PRICING &amp; STOCK" styleClass="form-section-title" />
+                <GridPane hgap="16" vgap="14">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="130" prefWidth="150" />
+                        <ColumnConstraints minWidth="180" hgrow="ALWAYS" />
+                        <ColumnConstraints minWidth="130" prefWidth="150" />
+                        <ColumnConstraints minWidth="180" hgrow="ALWAYS" />
+                    </columnConstraints>
+                    <Label text="Cost Price *" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <TextField fx:id="costPriceField" promptText="0.00"
+                               GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity" />
+                    <Label text="Selling Price *" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                    <TextField fx:id="sellPriceField" promptText="0.00"
+                               GridPane.columnIndex="3" GridPane.rowIndex="0" maxWidth="Infinity" />
+                    <Label text="Initial Quantity" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                    <TextField fx:id="quantityField" promptText="0"
+                               GridPane.columnIndex="1" GridPane.rowIndex="1" maxWidth="Infinity" />
+                    <Label text="Low Stock Threshold" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                    <TextField fx:id="thresholdField" promptText="5"
+                               GridPane.columnIndex="3" GridPane.rowIndex="1" maxWidth="Infinity" />
+                </GridPane>
+
+                <!-- Description -->
+                <Label text="DESCRIPTION" styleClass="form-section-title" />
+                <TextArea fx:id="descriptionArea" prefRowCount="4"
+                          promptText="Optional product description…"
+                          maxWidth="Infinity" />
+
+            </VBox>
+        </ScrollPane>
+
+        <!-- Right: image upload -->
+        <VBox spacing="14" alignment="TOP_CENTER" prefWidth="220" minWidth="200"
+              styleClass="image-upload-card">
+            <Label text="PRODUCT IMAGE" styleClass="form-section-title"
+                   maxWidth="Infinity" textAlignment="CENTER" />
+            <ImageView fx:id="imagePreview" fitWidth="180" fitHeight="180"
+                       preserveRatio="true" />
+            <Label fx:id="imagePathLabel" text="No image selected"
+                   wrapText="true" textAlignment="CENTER"
+                   style="-fx-text-fill:#7B90A8;-fx-font-size:12px;"
+                   maxWidth="Infinity" />
+            <Button text="Select Image" onAction="#handleImagePick"
+                    styleClass="secondary-btn" maxWidth="Infinity" />
+        </VBox>
+
+    </HBox>
+
+    <!-- ── Footer actions ──────────────────────────────────────── -->
+    <HBox spacing="14" alignment="CENTER_RIGHT">
+        <Label text="Powered by Open Food Facts (ODbL)"
+               style="-fx-text-fill:#4A5D72;-fx-font-size:11px;"
+               HBox.hgrow="ALWAYS" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Button text="Cancel" onAction="#handleCancel" styleClass="secondary-btn" />
+        <Button text="💾  Save Product" onAction="#handleSave" styleClass="primary-btn"
+                style="-fx-padding:11px 24px;" />
+    </HBox>
+
+</VBox>

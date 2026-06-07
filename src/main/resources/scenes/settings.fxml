@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane fitToWidth="true" styleClass="dashboard-scroll"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="application.controller.SettingsController">
+
+    <VBox spacing="28" styleClass="view-container" fillWidth="true">
+
+        <!-- ── Page Header ─────────────────────────────────────────── -->
+        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="page-header">
+            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                <Label text="Settings" styleClass="page-title" />
+                <Label text="Configure your store profile, currency, tax rates and notifications"
+                       style="-fx-text-fill:#7B90A8;-fx-font-size:13px;" />
+            </VBox>
+            <Button text="💾  Save Settings" onAction="#saveSettings" styleClass="primary-btn" />
+        </HBox>
+
+        <!-- ── Store Profile ───────────────────────────────────────── -->
+        <VBox styleClass="kpi-card" spacing="16">
+            <Label text="🏪  STORE PROFILE" styleClass="kpi-title" />
+            <HBox spacing="20">
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="Store Name" style="-fx-text-fill:#94A3B8;-fx-font-size:12px;" />
+                    <TextField fx:id="storeNameField"
+                               promptText="e.g. Ahmed's Electronics"
+                               styleClass="search-field" />
+                </VBox>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="Store Address / Info" style="-fx-text-fill:#94A3B8;-fx-font-size:12px;" />
+                    <TextField fx:id="storeAddressField"
+                               promptText="e.g. 12 Main Street, Algiers"
+                               styleClass="search-field" />
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <!-- ── Localization ────────────────────────────────────────── -->
+        <VBox styleClass="kpi-card" spacing="16">
+            <Label text="🌍  LOCALIZATION" styleClass="kpi-title" />
+            <HBox spacing="20">
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="Currency Symbol (leave blank for none)"
+                           style="-fx-text-fill:#94A3B8;-fx-font-size:12px;" />
+                    <TextField fx:id="currencySymbolField"
+                               promptText="e.g. DZD, €, £, ¥  (or leave blank)"
+                               maxWidth="300"
+                               styleClass="search-field" />
+                    <Label text="This prefix will appear before all prices in the app."
+                           style="-fx-text-fill:#475569;-fx-font-size:11px;" />
+                </VBox>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="Tax / VAT Rate (%)"
+                           style="-fx-text-fill:#94A3B8;-fx-font-size:12px;" />
+                    <TextField fx:id="taxRateField"
+                               promptText="e.g. 19  for 19%.  Enter 0 to disable."
+                               maxWidth="300"
+                               styleClass="search-field" />
+                    <Label text="Applied automatically at checkout in Point of Sale."
+                           style="-fx-text-fill:#475569;-fx-font-size:11px;" />
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <!-- ── Inventory Defaults ──────────────────────────────────── -->
+        <VBox styleClass="kpi-card" spacing="16">
+            <Label text="📦  INVENTORY DEFAULTS" styleClass="kpi-title" />
+            <HBox spacing="20" alignment="CENTER_LEFT">
+                <VBox spacing="6">
+                    <Label text="Default Low Stock Threshold"
+                           style="-fx-text-fill:#94A3B8;-fx-font-size:12px;" />
+                    <Spinner fx:id="lowStockSpinner" min="1" max="999" initialValue="5"
+                             editable="true" maxWidth="180"
+                             styleClass="search-field" />
+                    <Label text="Products with stock at or below this value will trigger a low-stock alert."
+                           style="-fx-text-fill:#475569;-fx-font-size:11px;" />
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <!-- ── Feedback banner ────────────────────────────────────── -->
+        <Label fx:id="feedbackLabel" text="" wrapText="true" maxWidth="Infinity"
+               style="-fx-padding: 10px 16px; -fx-background-radius: 8; -fx-font-size: 13px;" />
+
+        <Region minHeight="20" />
+
+    </VBox>
+</ScrollPane>

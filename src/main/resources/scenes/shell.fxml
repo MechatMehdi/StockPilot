@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.geometry.Insets?>
+
+<StackPane
+    styleClass="root"
+    xmlns="http://javafx.com/javafx"
+    xmlns:fx="http://javafx.com/fxml"
+    fx:controller="application.controller.ShellController">
+
+    <!-- Background: two large decorative blue lines drawn via Canvas -->
+    <Canvas fx:id="bgCanvas" />
+
+    <BorderPane style="-fx-background-color: transparent;">
+
+    <!-- ── Sidebar ─────────────────────────────────────────────── -->
+    <left>
+        <VBox styleClass="sidebar" prefWidth="240" minWidth="200">
+
+            <!-- Brand header -->
+            <VBox styleClass="sidebar-header" spacing="10" alignment="CENTER">
+                <ImageView fitWidth="64" fitHeight="64" preserveRatio="true" styleClass="mascot-panel">
+                    <image><Image url="@../photos/image.png" /></image>
+                </ImageView>
+                <VBox spacing="2" alignment="CENTER">
+                    <Label text="StockPilot" styleClass="sidebar-brand" />
+                    <Label text="Inventory Management" styleClass="sidebar-version" />
+                </VBox>
+            </VBox>
+
+            <!-- Nav section label -->
+            <Label text="NAVIGATION" styleClass="sidebar-section-label" />
+
+            <!-- Nav buttons (maxWidth ensures they fill the sidebar) -->
+            <Button text="🏠  Dashboard"    onAction="#showDashboard"  styleClass="sidebar-btn" maxWidth="Infinity" />
+            <Button fx:id="navCatalogue"  text="📦  Catalogue"    onAction="#showCatalogue"  styleClass="sidebar-btn" maxWidth="Infinity" />
+            <Button fx:id="navAddProduct" text="➕  Add Product"  onAction="#showAddProduct" styleClass="sidebar-btn" maxWidth="Infinity" />
+            <Button text="🛒  Selling Mode" onAction="#showSellingMode" styleClass="sidebar-btn" maxWidth="Infinity" />
+            <Button text="📋  Activity Log" onAction="#showActivity"   styleClass="sidebar-btn" maxWidth="Infinity" />
+            <Button fx:id="navSettings"   text="⚙️  Settings"     onAction="#showSettings"   styleClass="sidebar-btn" maxWidth="Infinity" />
+
+            <!-- Push footer to bottom -->
+            <Region VBox.vgrow="ALWAYS" />
+
+            <!-- Divider -->
+            <Region styleClass="sidebar-divider" />
+
+            <!-- User footer panel -->
+            <VBox styleClass="sidebar-user-panel" spacing="6">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <!-- Avatar circle -->
+                    <StackPane minWidth="36" minHeight="36" maxWidth="36" maxHeight="36"
+                               style="-fx-background-color: rgba(59,130,246,0.25);
+                                      -fx-background-radius: 50;
+                                      -fx-border-color: rgba(59,130,246,0.45);
+                                      -fx-border-radius: 50;
+                                      -fx-border-width: 1;">
+                        <Label fx:id="avatarLabel" text="U"
+                               style="-fx-text-fill: #60A5FA; -fx-font-weight: bold; -fx-font-size: 15px;" />
+                    </StackPane>
+                    <VBox spacing="2">
+                        <Label fx:id="userNameLabel" text="User" styleClass="sidebar-user-name" />
+                        <Label fx:id="userRoleLabel" text="Staff" styleClass="sidebar-user-role" />
+                    </VBox>
+                </HBox>
+                <Button text="⇤  Logout" onAction="#logout"
+                        maxWidth="Infinity"
+                        styleClass="danger-btn"
+                        style="-fx-padding:9px 14px;" />
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- ── Dynamic Content Area ────────────────────────────────── -->
+    <center>
+        <StackPane fx:id="contentArea" styleClass="content-area" />
+    </center>
+
+    </BorderPane>
+</StackPane>

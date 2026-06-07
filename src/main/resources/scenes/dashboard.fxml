@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+
+<ScrollPane
+    fitToWidth="true"
+    styleClass="dashboard-scroll"
+    xmlns="http://javafx.com/javafx"
+    xmlns:fx="http://javafx.com/fxml"
+    fx:controller="application.controller.DashboardController">
+
+    <VBox spacing="24" styleClass="view-container" fillWidth="true">
+
+        <!-- ── Page Header ──────────────────────────────────────── -->
+        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="page-header">
+            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                <Label text="Dashboard" styleClass="page-title" />
+                <Label text="Real-time overview of your inventory"
+                       style="-fx-text-fill:#7B90A8;-fx-font-size:13px;" />
+            </VBox>
+        </HBox>
+
+        <!-- ── KPI Row ───────────────────────────────────────────── -->
+        <HBox spacing="16" fillHeight="true">
+
+            <!-- Total Products -->
+            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="6">
+                <Label text="📦" styleClass="kpi-icon" />
+                <Label text="TOTAL PRODUCTS" styleClass="kpi-title" />
+                <Label fx:id="totalProductsLabel" text="—" styleClass="kpi-value" />
+            </VBox>
+
+            <!-- Inventory Value -->
+            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="6">
+                <Label text="💰" styleClass="kpi-icon" />
+                <Label text="INVENTORY VALUE" styleClass="kpi-title" />
+                <Label fx:id="inventoryValueLabel" text="—" styleClass="kpi-value"
+                       style="-fx-font-size:24px;" />
+            </VBox>
+
+            <!-- Potential Profit -->
+            <VBox styleClass="kpi-card kpi-success" HBox.hgrow="ALWAYS" spacing="6">
+                <Label text="📈" styleClass="kpi-icon" />
+                <Label text="POTENTIAL PROFIT" styleClass="kpi-title" />
+                <Label fx:id="potentialProfitLabel" text="—" styleClass="kpi-value"
+                       style="-fx-font-size:24px;-fx-text-fill:#34D399;" />
+            </VBox>
+
+            <!-- Low Stock Alerts -->
+            <VBox styleClass="kpi-card kpi-warning" HBox.hgrow="ALWAYS" spacing="6">
+                <Label text="⚠️" styleClass="kpi-icon" />
+                <Label text="LOW STOCK ALERTS" styleClass="kpi-title" />
+                <Label fx:id="lowStockLabel" text="—" styleClass="kpi-value"
+                       style="-fx-text-fill:#F87171;" />
+            </VBox>
+
+            <!-- Current Earnings -->
+            <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS" spacing="6">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="💵" styleClass="kpi-icon" />
+                    <ComboBox fx:id="earningsPeriodCombo" styleClass="secondary-btn" style="-fx-padding: 2px 5px; -fx-font-size: 11px;" />
+                </HBox>
+                <Label text="CURRENT EARNINGS" styleClass="kpi-title" />
+                <Label fx:id="currentEarningsLabel" text="—" styleClass="kpi-value" style="-fx-font-size:24px;-fx-text-fill:#60A5FA;" />
+                <Label fx:id="previousEarningsLabel" text="Previous: 0.00" style="-fx-text-fill:#7B90A8; -fx-font-size: 11px;" />
+            </VBox>
+
+        </HBox>
+
+        <!-- ── Charts Row ─────────────────────────────────────────── -->
+        <HBox spacing="16" VBox.vgrow="ALWAYS">
+
+            <!-- Pie chart -->
+            <VBox styleClass="chart-card" HBox.hgrow="ALWAYS">
+                <Label text="Products by Category" styleClass="chart-title" />
+                <PieChart fx:id="categoryPieChart" prefHeight="300" VBox.vgrow="ALWAYS" />
+            </VBox>
+
+            <!-- Low-stock table with Stocky -->
+            <VBox styleClass="chart-card" HBox.hgrow="ALWAYS" spacing="12">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="Top Low Stock Items" styleClass="chart-title"
+                           HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                </HBox>
+                <TableView fx:id="lowStockTable" prefHeight="280" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn text="SKU" prefWidth="90">
+                            <cellValueFactory><PropertyValueFactory property="sku" /></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn text="Product Name" prefWidth="200">
+                            <cellValueFactory><PropertyValueFactory property="productName" /></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn text="Stock" prefWidth="70">
+                            <cellValueFactory><PropertyValueFactory property="quantity" /></cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
+            </VBox>
+
+        </HBox>
+
+        <!-- ── Bottom spacer ───────────────────────────────────── -->
+        <Region minHeight="20" />
+
+    </VBox>
+</ScrollPane>

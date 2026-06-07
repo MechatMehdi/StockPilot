@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>StockPilot Scanner</title>
+<style>
+  :root {
+    --bg-primary:    #0F1923;
+    --bg-secondary:  #1A2736;
+    --bg-card:       #1E2D3D;
+    --accent:        #3B82F6;
+    --accent-hover:  #2563EB;
+    --danger:        #EF4444;
+    --success:       #10B981;
+    --text-primary:  #F1F5F9;
+    --text-secondary:#94A3B8;
+    --border:        #334155;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 32px 0;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    width: 100%;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 20px 14px;
+    text-align: center;
+  }
+  .header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .header h1 span { color: var(--accent); }
+
+  /* ── Status Bar ── */
+  .status-bar {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 8px; font-size: 13px; color: var(--text-secondary);
+  }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-secondary);
+    transition: background 0.4s ease;
+  }
+  .status-dot.connected    { background: var(--success); box-shadow: 0 0 6px var(--success); }
+  .status-dot.disconnected { background: var(--danger);  box-shadow: 0 0 6px var(--danger); }
+
+  /* ── Main content ── */
+  .content { width: 100%; max-width: 480px; padding: 20px 16px; display: flex; flex-direction: column; gap: 18px; }
+
+  /* ── Viewfinder card ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  }
+  .card-title {
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--text-secondary); margin-bottom: 14px;
+  }
+
+  #reader {
+    width: 100%; border-radius: 10px; overflow: hidden;
+    background: #000; min-height: 220px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  /* Override html5-qrcode default styles */
+  #reader video { border-radius: 10px; }
+  #reader img   { display: none !important; }
+  #reader__dashboard_section_swaplink { display: none !important; }
+  #reader__status_span { display: none !important; }
+
+  /* Scanning line animation */
+  .scan-line {
+    position: absolute; left: 10%; right: 10%; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    border-radius: 2px;
+    animation: scanline 2s ease-in-out infinite;
+    pointer-events: none; z-index: 10;
+  }
+  @keyframes scanline {
+    0%   { top: 15%; opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { top: 85%; opacity: 0; }
+  }
+
+  /* ── Result card ── */
+  .result-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .result-card.success {
+    border-color: var(--success);
+    box-shadow: 0 0 16px rgba(16,185,129,0.2);
+  }
+  .result-card.error {
+    border-color: var(--danger);
+    box-shadow: 0 0 16px rgba(239,68,68,0.2);
+  }
+
+  .result-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); }
+  .result-value {
+    font-size: 22px; font-weight: 700; margin: 6px 0 4px;
+    word-break: break-all; min-height: 30px;
+  }
+  .result-status { font-size: 13px; color: var(--text-secondary); }
+  .result-status.ok  { color: var(--success); }
+  .result-status.err { color: var(--danger); }
+
+  /* ── History ── */
+  .history-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .history-count {
+    background: var(--accent); color: white;
+    border-radius: 20px; padding: 2px 8px; font-size: 11px; font-weight: 700;
+  }
+  .history-list { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; }
+  .history-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg-secondary);
+    border-radius: 8px; padding: 9px 12px;
+    font-size: 13px; border: 1px solid var(--border);
+    animation: fadeInUp 0.25s ease;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .history-code { font-weight: 600; color: var(--text-primary); font-size: 14px; }
+  .history-time { font-size: 11px; color: var(--text-secondary); white-space: nowrap; margin-left: 8px; }
+
+  /* ── Instructions ── */
+  .instructions {
+    text-align: center; font-size: 13px;
+    color: var(--text-secondary); line-height: 1.7;
+    padding: 0 4px;
+  }
+  .instructions strong { color: var(--text-primary); }
+
+  /* ── Loading overlay ── */
+  .loading {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 12px; padding: 30px; color: var(--text-secondary); font-size: 14px;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>Stock<span>Pilot</span> Scanner</h1>
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">Connecting…</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Camera viewfinder -->
+  <div class="card">
+    <div class="card-title">📷 Point camera at barcode</div>
+    <div id="reader">
+      <div class="loading" id="loadingIndicator">
+        <div class="spinner"></div>
+        <span>Starting camera…</span>
+      </div>
+      <div class="scan-line" id="scanLine" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- Last scan result -->
+  <div class="result-card" id="resultCard">
+    <div class="result-label">Last Scanned</div>
+    <div class="result-value" id="resultValue" style="color:var(--text-secondary)">—</div>
+    <div class="result-status" id="resultStatus">Waiting for scan…</div>
+  </div>
+
+  <!-- History -->
+  <div class="card">
+    <div class="history-header">
+      <div class="card-title" style="margin:0">Scan History</div>
+      <span class="history-count" id="historyCount">0</span>
+    </div>
+    <ul class="history-list" id="historyList">
+      <li style="text-align:center;color:var(--text-secondary);font-size:13px;padding:12px 0">
+        No scans yet
+      </li>
+    </ul>
+  </div>
+
+  <!-- Instructions -->
+  <div class="instructions">
+    Hold your phone steady and aim the camera at any<br/>
+    <strong>barcode or QR code</strong>. The result is sent<br/>
+    instantly to StockPilot on your PC.
+  </div>
+
+</div>
+
+<!--
+  html5-qrcode v2.3.8 — MIT License
+  Inlined to work without internet on local network.
+  Source: https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js
+-->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  const PC_ORIGIN   = window.location.origin; // e.g. http://192.168.1.15:8080
+  const SCAN_COOLDOWN_MS = 1500;
+  let lastScanned   = '';
+  let lastScanTime  = 0;
+  let scanHistory   = [];
+  let scannerReady  = false;
+
+  // ── Status check ────────────────────────────────────────────────────────────
+  async function checkStatus() {
+    try {
+      const res = await fetch(PC_ORIGIN + '/status', { method: 'GET', cache: 'no-cache' });
+      if (res.ok) {
+        setStatus(true);
+      } else {
+        setStatus(false);
+      }
+    } catch {
+      setStatus(false);
+    }
+  }
+
+  function setStatus(connected) {
+    const dot  = document.getElementById('statusDot');
+    const text = document.getElementById('statusText');
+    dot.className  = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+    text.textContent = connected ? 'Connected to PC ✓' : 'PC not reachable';
+  }
+
+  // ── Beep (via Web Audio API) ─────────────────────────────────────────────
+  function beep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = 1200;
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.18);
+    } catch { /* silence */ }
+  }
+
+  // ── Format time ─────────────────────────────────────────────────────────────
+  function formatTime(date) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  // ── Send barcode to PC ──────────────────────────────────────────────────────
+  async function sendToPC(barcode) {
+    const card    = document.getElementById('resultCard');
+    const valEl   = document.getElementById('resultValue');
+    const statEl  = document.getElementById('resultStatus');
+
+    valEl.textContent  = barcode;
+    valEl.style.color  = 'var(--text-primary)';
+    statEl.textContent = 'Sending to PC…';
+    statEl.className   = 'result-status';
+    card.className     = 'result-card';
+
+    try {
+      const res = await fetch(PC_ORIGIN + '/scan', {
+        method: 'POST',
+        body: barcode,
+        headers: { 'Content-Type': 'text/plain' }
+      });
+
+      if (res.ok) {
+        statEl.textContent = '✓ Sent to PC';
+        statEl.className   = 'result-status ok';
+        card.className     = 'result-card success';
+        addToHistory(barcode);
+      } else {
+        statEl.textContent = '✗ Server error';
+        statEl.className   = 'result-status err';
+        card.className     = 'result-card error';
+      }
+    } catch {
+      statEl.textContent = '✗ Could not reach PC';
+      statEl.className   = 'result-status err';
+      card.className     = 'result-card error';
+    }
+  }
+
+  // ── History ──────────────────────────────────────────────────────────────────
+  function addToHistory(barcode) {
+    scanHistory.unshift({ code: barcode, time: new Date() });
+    if (scanHistory.length > 20) scanHistory.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const list  = document.getElementById('historyList');
+    const count = document.getElementById('historyCount');
+    count.textContent = scanHistory.length;
+
+    if (scanHistory.length === 0) {
+      list.innerHTML = '<li style="text-align:center;color:var(--text-secondary);font-size:13px;padding:12px 0">No scans yet</li>';
+      return;
+    }
+    list.innerHTML = scanHistory.map(entry => `
+      <li class="history-item">
+        <span class="history-code">${entry.code}</span>
+        <span class="history-time">${formatTime(entry.time)}</span>
+      </li>
+    `).join('');
+  }
+
+  // ── Scan success callback ────────────────────────────────────────────────────
+  function onScanSuccess(decodedText) {
+    const now = Date.now();
+    if (decodedText === lastScanned && (now - lastScanTime) < SCAN_COOLDOWN_MS) return;
+
+    lastScanned  = decodedText;
+    lastScanTime = now;
+
+    beep();
+    if (navigator.vibrate) navigator.vibrate(150);
+    sendToPC(decodedText);
+  }
+
+  // ── Start scanner ────────────────────────────────────────────────────────────
+  function startScanner() {
+    const loadingEl = document.getElementById('loadingIndicator');
+    const scanLine  = document.getElementById('scanLine');
+
+    // Insecure contexts (HTTP) block getUserMedia, but we are using HTTPS now!
+    // If it's still missing, the browser might be very old or permissions were denied.
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      loadingEl.innerHTML = `
+        <div style="text-align:center;padding:16px;">
+          <div style="font-size:32px;margin-bottom:10px">🔒</div>
+          <strong style="color:var(--text-primary)">Camera Not Supported</strong><br/><br/>
+          <span style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+            Your browser does not support live camera access, or you need to accept the "Not Private" certificate warning.<br/>
+          </span>
+        </div>
+      `;
+      return;
+    }
+
+    const html5QrCode = new Html5Qrcode('reader');
+    const config = {
+      fps: 10,
+      qrbox: { width: 260, height: 160 },
+      aspectRatio: 1.4
+    };
+
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length > 0) {
+        // Find back camera if possible
+        let cameraId = devices[devices.length - 1].id;
+        for (let i = 0; i < devices.length; i++) {
+          let label = devices[i].label.toLowerCase();
+          if (label.includes('back') || label.includes('environment') || label.includes('rear')) {
+            cameraId = devices[i].id;
+          }
+        }
+        
+        html5QrCode.start(
+          cameraId,
+          config,
+          onScanSuccess,
+          () => { /* ignore non-fatal errors */ }
+        ).then(() => {
+          loadingEl.style.display = 'none';
+          scanLine.style.display  = 'block';
+          scannerReady = true;
+        }).catch(err => {
+          loadingEl.innerHTML = `<div style="color:var(--danger)">Camera error: ${err}</div>`;
+        });
+      } else {
+        loadingEl.innerHTML = `<div style="color:var(--danger)">No cameras found on device</div>`;
+      }
+    }).catch(err => {
+      loadingEl.innerHTML = `<div style="color:var(--danger)">Could not access camera list: ${err}</div>`;
+    });
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  checkStatus();
+  setInterval(checkStatus, 10000); // re-check every 10 seconds
+
+  // Wait for html5-qrcode to load (it's loaded via script tag)
+  window.addEventListener('load', () => {
+    if (typeof Html5Qrcode !== 'undefined') {
+      startScanner();
+    } else {
+      document.getElementById('loadingIndicator').innerHTML = `
+        <div style="text-align:center;color:var(--danger);padding:16px">
+          <strong>Scanner library failed to load.</strong><br/>
+          <span style="font-size:12px;color:var(--text-secondary)">
+            Check your internet connection and refresh.
+          </span>
+        </div>`;
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
