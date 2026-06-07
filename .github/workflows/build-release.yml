@@ -23,6 +23,25 @@ jobs:
           if (Test-Path "gl_project\pom.xml") { cd gl_project }
           .\mvnw.cmd clean package -DskipTests
       
+      - name: Create Windows Installer
+        run: |
+          $projectDir = if (Test-Path "gl_project\pom.xml") { "gl_project" } else { "." }
+          $targetDir = "$projectDir\target"
+          $jarFile = Get-ChildItem "$targetDir\*-shaded.jar" | Select-Object -First 1
+          
+          if (-not $jarFile) {
+            Write-Error "Shaded JAR not found in $targetDir"
+            exit 1
+          }
+          
+          $outputDir = "$targetDir\dist"
+          if (-not (Test-Path $outputDir)) { New-Item -ItemType Directory -Path $outputDir -Force | Out-Null }
+          
+          Write-Host "Found JAR: $($jarFile.FullName)"
+          Write-Host "Creating installer in: $outputDir"
+          
+          jpackage --input "$targetDir" --name StockPilot --main-jar $($jarFile.Name) --main-class application.main.AppLauncher --type msi --dest "$outputDir" --app-version 1.0 --vendor "StockPilot" --win-dir-chooser --win-menu --win-shortcut
+      
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
