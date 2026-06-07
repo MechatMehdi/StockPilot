@@ -34,7 +34,6 @@ jobs:
           $projectDir = "${{ steps.find_root.outputs.projectDir }}"
           Write-Host "Building from: $projectDir"
           
-          # Run Maven from the project directory
           if ($projectDir -ne ".") {
             Push-Location $projectDir
           }
@@ -64,7 +63,6 @@ jobs:
             Get-ChildItem $targetDir -File | ForEach-Object { Write-Host "  - $($_.Name)" }
           }
           
-          # Find the JAR file
           $jarFile = Get-ChildItem "$targetDir\*.jar" -ErrorAction SilentlyContinue | 
                      Where-Object { $_.Name -notlike "*original*" } | 
                      Select-Object -First 1
@@ -76,13 +74,11 @@ jobs:
           
           Write-Host "Found JAR: $($jarFile.Name)"
           
-          # Create dist directory
           $distDir = Join-Path $targetDir "dist"
           if (-not (Test-Path $distDir)) { 
             New-Item -ItemType Directory -Path $distDir -Force | Out-Null
           }
           
-          # Create MSI installer
           Write-Host "Creating MSI installer..."
           jpackage `
             --input "$targetDir" `
@@ -111,7 +107,6 @@ jobs:
           $projectDir = "${{ steps.find_root.outputs.projectDir }}"
           $targetDir = Join-Path $projectDir "target"
 
-          # Search recursively for any MSI files
           $msiFiles = @(Get-ChildItem -Path $targetDir -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue)
 
           if ($msiFiles.Count -eq 0) {
@@ -128,17 +123,6 @@ jobs:
             echo "msiName=$($first.Name)" >> $env:GITHUB_OUTPUT
           }
 
-      - name: Ensure RELEASE_PUBLISH_TOKEN is configured
-        run: |
-          if ("${{ secrets.RELEASE_PUBLISH_TOKEN }}" -eq "") {
-            Write-Host "Secret RELEASE_PUBLISH_TOKEN is not set."
-            Write-Host "Create a Personal Access Token (PAT) with 'repo' scope and add it as a repository secret named RELEASE_PUBLISH_TOKEN."
-            Write-Host "Refer: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token"
-            exit 1
-          } else {
-            Write-Host "RELEASE_PUBLISH_TOKEN is present. Proceeding."
-          }
-
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -149,7 +133,7 @@ jobs:
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_PUBLISH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Release Asset
         id: upload_asset
@@ -160,4 +144,4 @@ jobs:
           asset_name: ${{ steps.msi.outputs.msiName }}
           asset_content_type: application/x-msi
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_PUBLISH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
