@@ -18,29 +18,92 @@ jobs:
           java-version: '23'
           distribution: 'oracle'
       
+      - name: Find project root
+        id: find_root
+        run: |
+          if (Test-Path "gl_project\pom.xml") {
+            Write-Host "Project found in gl_project subdirectory"
+            echo "projectDir=gl_project" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "Project found in repository root"
+            echo "projectDir=." >> $env:GITHUB_OUTPUT
+          }
+      
       - name: Build with Maven
         run: |
-          if (Test-Path "gl_project\pom.xml") { cd gl_project }
-          .\mvnw.cmd clean package -DskipTests
+          $projectDir = "${{ steps.find_root.outputs.projectDir }}"
+          Write-Host "Building from: $projectDir"
+          
+          # Run Maven from the project directory
+          if ($projectDir -ne ".") {
+            Push-Location $projectDir
+          }
+          
+          .\mvnw.cmd clean package -DskipTests -X
+          $buildStatus = $LASTEXITCODE
+          
+          if ($projectDir -ne ".") {
+            Pop-Location
+          }
+          
+          if ($buildStatus -ne 0) {
+            Write-Error "Maven build failed with exit code $buildStatus"
+            exit $buildStatus
+          }
       
-      - name: Create Windows Installer
+      - name: Find and Package JAR
         run: |
-          $projectDir = if (Test-Path "gl_project\pom.xml") { "gl_project" } else { "." }
-          $targetDir = "$projectDir\target"
-          $jarFile = Get-ChildItem "$targetDir\*-shaded.jar" | Select-Object -First 1
+          $projectDir = "${{ steps.find_root.outputs.projectDir }}"
+          $targetDir = Join-Path $projectDir "target"
+          
+          Write-Host "Target directory: $targetDir"
+          Write-Host "Directory exists: $(Test-Path $targetDir)"
+          
+          if (Test-Path $targetDir) {
+            Write-Host "Files in target:"
+            Get-ChildItem $targetDir -File | ForEach-Object { Write-Host "  - $($_.Name)" }
+          }
+          
+          # Find the JAR file
+          $jarFile = Get-ChildItem "$targetDir\*.jar" -ErrorAction SilentlyContinue | 
+                     Where-Object { $_.Name -notlike "*original*" } | 
+                     Select-Object -First 1
           
           if (-not $jarFile) {
-            Write-Error "Shaded JAR not found in $targetDir"
+            Write-Error "No JAR file found in $targetDir"
             exit 1
           }
           
-          $outputDir = "$targetDir\dist"
-          if (-not (Test-Path $outputDir)) { New-Item -ItemType Directory -Path $outputDir -Force | Out-Null }
+          Write-Host "Found JAR: $($jarFile.Name)"
           
-          Write-Host "Found JAR: $($jarFile.FullName)"
-          Write-Host "Creating installer in: $outputDir"
+          # Create dist directory
+          $distDir = Join-Path $targetDir "dist"
+          if (-not (Test-Path $distDir)) { 
+            New-Item -ItemType Directory -Path $distDir -Force | Out-Null
+          }
           
-          jpackage --input "$targetDir" --name StockPilot --main-jar $($jarFile.Name) --main-class application.main.AppLauncher --type msi --dest "$outputDir" --app-version 1.0 --vendor "StockPilot" --win-dir-chooser --win-menu --win-shortcut
+          # Create MSI installer
+          Write-Host "Creating MSI installer..."
+          jpackage `
+            --input "$targetDir" `
+            --name StockPilot `
+            --main-jar "$($jarFile.Name)" `
+            --main-class application.main.AppLauncher `
+            --type msi `
+            --dest "$distDir" `
+            --app-version 1.0 `
+            --vendor "StockPilot" `
+            --win-dir-chooser `
+            --win-menu `
+            --win-shortcut
+          
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "MSI created successfully"
+            Get-ChildItem "$distDir\*.msi" | ForEach-Object { Write-Host "  - $($_.Name)" }
+          } else {
+            Write-Error "jpackage failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
