@@ -58,7 +58,6 @@ jobs:
           Write-Host "Files in target:"
           Get-ChildItem $targetDir -File | ForEach-Object { Write-Host "  - $($_.Name)" }
 
-          # Find the shaded JAR (exclude original)
           $jarFile = Get-ChildItem "$targetDir\*.jar" -ErrorAction SilentlyContinue |
                      Where-Object { $_.Name -notlike "*original*" } |
                      Select-Object -First 1
@@ -70,13 +69,11 @@ jobs:
 
           Write-Host "Found JAR: $($jarFile.Name)"
 
-          # Create dist directory
           $distDir = Join-Path $targetDir "dist"
           if (-not (Test-Path $distDir)) {
             New-Item -ItemType Directory -Path $distDir -Force | Out-Null
           }
 
-          # jpackage — bundle JRE + JAR into MSI
           Write-Host "Creating MSI installer..."
           jpackage `
             --input "$targetDir" `
@@ -87,6 +84,7 @@ jobs:
             --dest "$distDir" `
             --app-version 1.0 `
             --vendor "StockPilot" `
+            --icon "$projectDir\src\main\resources\photos\image.ico" `
             --java-options "--add-opens javafx.graphics/com.sun.javafx.sg.prism=ALL-UNNAMED" `
             --java-options "-Dfile.encoding=UTF-8" `
             --win-dir-chooser `
