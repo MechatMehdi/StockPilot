@@ -1,10 +1,10 @@
 # StockPilot - Enterprise Inventory Management
 
 [![Java 23](https://img.shields.io/badge/Java-23-orange.svg)](https://jdk.java.net/23/)
-[![JavaFX 25](https://img.shields.io/badge/JavaFX-25-blue.svg)](https://openjfx.io/)
+[![JavaFX 23](https://img.shields.io/badge/JavaFX-23-blue.svg)](https://openjfx.io/)
 [![SQLite](https://img.shields.io/badge/Database-SQLite-lightgrey.svg)](https://www.sqlite.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 StockPilot is a premium, production-grade desktop application for inventory and stock management. Built with JavaFX, SQLite, and modern UI design principles.
 
@@ -13,10 +13,11 @@ StockPilot is a premium, production-grade desktop application for inventory and 
 ## 🌟 Overview & Key Features
 
 - **Dashboard:** Real-time business metrics, analytics, and stock charts.
-- **Catalogue:** Comprehensive product management supporting SKUs, pricing, categories, and high-res images.
+- **Catalogue:** Comprehensive product management supporting SKUs, pricing, categories, QR code generation, and high-res product images.
 - **Stock Management:** Add, edit, archive products, and record stock adjustments defensively.
-- **Activity Log:** Complete, audit-ready historical log of all stock movements.
-- **Premium UI:** Dark mode styling with CSS variables, responsive layout design, and smooth transitions.
+- **Activity Log & Audit:** Complete, audit-ready historical log of all stock movements and transactions.
+- **Receipt & Invoice Export:** Automated PDF generation for customer transactions and inventory reports.
+- **Premium UI:** Dark mode styling with CSS variables, responsive layout design, custom cell rendering, and smooth transitions.
 
 ---
 
@@ -36,43 +37,53 @@ StockPilot is built following SOLID engineering principles and Clean Architectur
 ## 💻 Tech Stack
 
 - **Language:** Java 23+
-- **UI Framework:** JavaFX 25
+- **UI Framework:** JavaFX 23
 - **Database:** SQLite (via JDBC)
+- **PDF Generation:** OpenPDF
+- **QR Code Engine:** ZXing
 - **Build System:** Apache Maven
 - **Icons:** FontAwesomeFX
 
 ---
 
-## ⚙️ Development & Building
+## ⚙️ Quick Start & Building from Source
 
 ### Prerequisites
-- JDK 23 or newer ([Download OpenJDK](https://jdk.java.net/23/))
-- Maven (included via standard `mvnw.cmd` wrapper)
+- **JDK 23** or newer ([Download OpenJDK](https://jdk.java.net/23/))
+- Maven wrapper included (`./mvnw` / `mvnw.cmd`)
 
-### Building from Source
+### Clone & Run
 ```bash
-# Navigate to project root
-cd gl_project
+# 1. Clone repository
+git clone https://github.com/MechatMehdi/StockPilot.git
+cd StockPilot
 
-# Compile and package executable JAR
-./mvnw.cmd clean package -DskipTests
+# 2. Run application locally
+./mvnw.cmd clean javafx:run
 ```
 
-### Packaging Desktop Installer
+### Build Executable JAR
 ```bash
-# Create runtime image and installer bundle
+# Package fat executable JAR
+./mvnw.cmd clean package -DskipTests
+```
+The output executable JAR will be located at `target/StockPilot-1.0.jar`.
+
+### Package Desktop Installer (Windows MSI)
+```bash
 ./mvnw.cmd jlink:jlink
 ./mvnw.cmd jpackage:jpackage
 ```
-
-The output installer (`StockPilot-1.0.msi`) will be generated under `gl_project/target/dist/`.
+The output installer (`StockPilot-1.0.msi`) will be generated under `target/dist/`.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page or submit a pull request targeting `main`.
+Contributions, issues, and feature requests are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting pull requests.
+
+---
 
 ## 📄 License
-Distributed under the [MIT License](LICENSE).
 
+Distributed under the [MIT License](LICENSE). Free for commercial and non-commercial open-source use.

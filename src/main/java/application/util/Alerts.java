@@ -18,7 +18,7 @@ public class Alerts {
         alert.setContentText(message);
         alert.show();
 
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1.5), _ -> alert.close()));
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1.5), e -> alert.close()));
         timeline.play();
     }
 
@@ -30,7 +30,7 @@ public class Alerts {
         alert.setContentText(message);
         alert.show();
 
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1.5), _ -> alert.close()));
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1.5), e -> alert.close()));
         timeline.play();
     }
 
